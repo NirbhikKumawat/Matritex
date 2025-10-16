@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var markdown bool
+
 func cube(initial [][]int) [][][]int {
 	return [][][]int{
 		{{initial[0][1], initial[0][0]}, {initial[1][0], initial[1][1]}},
@@ -56,9 +58,18 @@ func printNMatrixLatexSingleRow(cubes [][][]int, matrixType string) {
 	}
 	printMatrixLatex(cubes[len(cubes)-1], matrixType)
 }
-func printMatrixDistanceSingleRow(matrix [][]int, matrixType string) {
+func printNMatrixDistanceSingleRow(matrix [][]int, matrixType string) {
 	printMatrixLatex(matrix, matrixType)
 	printNMatrixLatexSingleRow(cube(matrix), matrixType)
+}
+func printNMatrixDistanceSingleRowMarkdown(matrix [][]int, matrixType string) {
+	fmt.Println("$")
+	printMatrixLatex(matrix, matrixType)
+	fmt.Println("$")
+	fmt.Println()
+	fmt.Println("$")
+	printNMatrixLatexSingleRow(cube(matrix), matrixType)
+	fmt.Println("$")
 }
 func main() {
 	var rootCmd = &cobra.Command{
@@ -68,7 +79,7 @@ func main() {
 		Args:  cobra.MinimumNArgs(1),
 		Run:   runMatrice,
 	}
-	//rootCmd.Flags().BoolVarP(&nolatex, "no-latex", "l", false, "no Latex")
+	rootCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -83,5 +94,9 @@ func runMatrice(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Error parsing matrix JSON: %v\n", err)
 		os.Exit(1)
 	}
-	printMatrixDistanceSingleRow(matrix, "pmatrix")
+	if markdown {
+		printNMatrixDistanceSingleRowMarkdown(matrix, "pmatrix")
+	} else {
+		printNMatrixDistanceSingleRow(matrix, "pmatrix")
+	}
 }
