@@ -9,6 +9,7 @@ import (
 )
 
 var markdown bool
+var row bool
 
 func cube(initial [][]int) [][][]int {
 	return [][][]int{
@@ -58,6 +59,11 @@ func printNMatrixLatexSingleRow(cubes [][][]int, matrixType string) {
 	}
 	printMatrixLatex(cubes[len(cubes)-1], matrixType)
 }
+func printNMatrixLatexSingleColumn(cubes [][][]int, matrixType string) {
+	for count := 0; count < len(cubes); count++ {
+		printMatrixLatex(cubes[count], matrixType)
+	}
+}
 func printNMatrixDistanceSingleRow(matrix [][]int, matrixType string) {
 	printMatrixLatex(matrix, matrixType)
 	printNMatrixLatexSingleRow(cube(matrix), matrixType)
@@ -71,6 +77,19 @@ func printNMatrixDistanceSingleRowMarkdown(matrix [][]int, matrixType string) {
 	printNMatrixLatexSingleRow(cube(matrix), matrixType)
 	fmt.Println("$")
 }
+func printNMatrixDistanceSingleColumn(matrix [][]int, matrixType string) {
+	printMatrixLatex(matrix, matrixType)
+	printNMatrixLatexSingleColumn(cube(matrix), matrixType)
+}
+func printNMatrixDistanceSingleColumnMarkdown(matrix [][]int, matrixType string) {
+	fmt.Println("$")
+	printMatrixLatex(matrix, matrixType)
+	fmt.Println("$")
+	fmt.Println()
+	fmt.Println("$")
+	printNMatrixLatexSingleColumn(cube(matrix), matrixType)
+	fmt.Println("$")
+}
 func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "matritex",
@@ -80,7 +99,7 @@ func main() {
 		Run:   runMatrice,
 	}
 	rootCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
-
+	rootCmd.Flags().BoolVarP(&row, "row", "r", false, "Output matrices in a single row for better readability")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -95,8 +114,16 @@ func runMatrice(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	if markdown {
-		printNMatrixDistanceSingleRowMarkdown(matrix, "pmatrix")
+		if row {
+			printNMatrixDistanceSingleRowMarkdown(matrix, "pmatrix")
+		} else {
+			printNMatrixDistanceSingleColumnMarkdown(matrix, "pmatrix")
+		}
 	} else {
-		printNMatrixDistanceSingleRow(matrix, "pmatrix")
+		if row {
+			printNMatrixDistanceSingleRow(matrix, "pmatrix")
+		} else {
+			printNMatrixDistanceSingleColumn(matrix, "pmatrix")
+		}
 	}
 }
