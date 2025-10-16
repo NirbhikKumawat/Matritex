@@ -94,12 +94,17 @@ func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "matritex",
 		Short: "Output LaTeX Matrix",
-		Long:  "A tool useful for converting a normal matrix into LaTeX format",
+	}
+	var distanceCmd = &cobra.Command{
+		Use:   "distance",
+		Short: "Output LaTeX Distance Matrices of a Matrix",
+		Long:  "A tool useful for returning distance matrices of a given matrix",
 		Args:  cobra.MinimumNArgs(1),
 		Run:   runMatrice,
 	}
-	rootCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
-	rootCmd.Flags().BoolVarP(&row, "row", "r", false, "Output matrices in a single row for better readability")
+	distanceCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
+	distanceCmd.Flags().BoolVarP(&row, "row", "r", false, "Output matrices in a single row for better readability")
+	rootCmd.AddCommand(distanceCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
