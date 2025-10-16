@@ -10,6 +10,7 @@ import (
 
 var markdown bool
 var row bool
+var matrixType string
 
 func cube(initial [][]int) [][][]int {
 	return [][][]int{
@@ -104,6 +105,7 @@ func main() {
 	}
 	distanceCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
 	distanceCmd.Flags().BoolVarP(&row, "row", "r", false, "Output matrices in a single row for better readability")
+	distanceCmd.Flags().StringVarP(&matrixType, "type", "t", "square", "Type of matrix in LaTeX")
 	rootCmd.AddCommand(distanceCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -118,17 +120,29 @@ func runMatrice(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Error parsing matrix JSON: %v\n", err)
 		os.Exit(1)
 	}
+	valid := map[string]string{
+		"square":    "bmatrix",
+		"circular":  "pmatrix",
+		"braces":    "Bmatrix",
+		"singlebar": "vmatrix",
+		"doublebar": "Vmatrix",
+	}
+	mtype, ok := valid[matrixType]
+	if !ok {
+		fmt.Errorf("invalid type: %s", matrixType)
+		os.Exit(1)
+	}
 	if markdown {
 		if row {
-			printNMatrixDistanceSingleRowMarkdown(matrix, "pmatrix")
+			printNMatrixDistanceSingleRowMarkdown(matrix, mtype)
 		} else {
-			printNMatrixDistanceSingleColumnMarkdown(matrix, "pmatrix")
+			printNMatrixDistanceSingleColumnMarkdown(matrix, mtype)
 		}
 	} else {
 		if row {
-			printNMatrixDistanceSingleRow(matrix, "pmatrix")
+			printNMatrixDistanceSingleRow(matrix, mtype)
 		} else {
-			printNMatrixDistanceSingleColumn(matrix, "pmatrix")
+			printNMatrixDistanceSingleColumn(matrix, mtype)
 		}
 	}
 }
