@@ -48,6 +48,11 @@ func printMatrixLatex(matrix [][]int, matrixType string) {
 	fmt.Printf("\\end{%s}", matrixType)
 	fmt.Println()
 }
+func printMatrixLatexMarkdown(matrix [][]int, matrixType string) {
+	fmt.Println("$")
+	printMatrixLatex(matrix, matrixType)
+	fmt.Println("$")
+}
 func printNMatrix(cubes [][][]int) {
 	for _, row := range cubes {
 		printMatrix(row)
@@ -101,18 +106,53 @@ func main() {
 		Short: "Output LaTeX Distance Matrices of a Matrix",
 		Long:  "A tool useful for returning distance matrices of a given matrix",
 		Args:  cobra.MinimumNArgs(1),
-		Run:   runMatrice,
+		Run:   runDistance,
 	}
+	var matrixCmd = &cobra.Command{
+		Use:   "matrix",
+		Short: "Output the matrix in Latex format",
+		Long:  "A tool to output a 2d array/matrix in a friendly LaTeX format",
+		Args:  cobra.MinimumNArgs(1),
+		Run:   runMatrix,
+	}
+	matrixCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
+	matrixCmd.Flags().StringVarP(&matrixType, "type", "t", "square", "Type of matrix in LaTeX")
 	distanceCmd.Flags().BoolVarP(&markdown, "markdown", "m", false, "Output LaTeX embedded in Markdown")
 	distanceCmd.Flags().BoolVarP(&row, "row", "r", false, "Output matrices in a single row for better readability")
 	distanceCmd.Flags().StringVarP(&matrixType, "type", "t", "square", "Type of matrix in LaTeX")
-	rootCmd.AddCommand(distanceCmd)
+	rootCmd.AddCommand(distanceCmd, matrixCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
-func runMatrice(cmd *cobra.Command, args []string) {
+func runMatrix(cmd *cobra.Command, args []string) {
+	matrixJSON := args[0]
+	var matrix [][]int
+	err := json.Unmarshal([]byte(matrixJSON), &matrix)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	valid := map[string]string{
+		"square":    "bmatrix",
+		"circular":  "pmatrix",
+		"braces":    "Bmatrix",
+		"singlebar": "vmatrix",
+		"doublebar": "Vmatrix",
+	}
+	mtype, ok := valid[matrixType]
+	if !ok {
+		fmt.Errorf("invalid matrix type %s", matrixType)
+		os.Exit(1)
+	}
+	if markdown {
+		printMatrixLatexMarkdown(matrix, mtype)
+	} else {
+		printMatrixLatex(matrix, mtype)
+	}
+}
+func runDistance(cmd *cobra.Command, args []string) {
 	matrixJSON := args[0]
 	var matrix [][]int
 	err := json.Unmarshal([]byte(matrixJSON), &matrix)
@@ -129,7 +169,7 @@ func runMatrice(cmd *cobra.Command, args []string) {
 	}
 	mtype, ok := valid[matrixType]
 	if !ok {
-		fmt.Errorf("invalid type: %s", matrixType)
+		fmt.Errorf("invalid type: %s,should be square,circular,braces,singlebar,doubelbar", matrixType)
 		os.Exit(1)
 	}
 	if markdown {
