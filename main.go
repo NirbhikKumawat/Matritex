@@ -8,42 +8,57 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//var nolatex bool
-
-func cube(initial [2][2]int) [4][2][2]int {
-	return [4][2][2]int{
-		[2][2]int{{initial[0][1], initial[0][0]}, {initial[1][0], initial[1][1]}},
-		[2][2]int{{initial[0][0], initial[1][1]}, {initial[1][0], initial[0][1]}},
-		[2][2]int{{initial[0][0], initial[0][1]}, {initial[1][1], initial[1][0]}},
-		[2][2]int{{initial[1][0], initial[0][1]}, {initial[0][0], initial[1][1]}},
+func cube(initial [][]int) [][][]int {
+	return [][][]int{
+		{{initial[0][1], initial[0][0]}, {initial[1][0], initial[1][1]}},
+		{{initial[0][0], initial[1][1]}, {initial[1][0], initial[0][1]}},
+		{{initial[0][0], initial[0][1]}, {initial[1][1], initial[1][0]}},
+		{{initial[1][0], initial[0][1]}, {initial[0][0], initial[1][1]}},
 	}
 }
-func printMatrice(matrice [2][2]int) {
-	for row := 0; row < 2; row++ {
-		for col := 0; col < 2; col++ {
-			fmt.Print(matrice[row][col])
+
+func printMatrix(matrix [][]int) {
+	for _, row := range matrix {
+		for _, col := range row {
+			fmt.Print(col, " ")
 		}
 		fmt.Println()
 	}
 	fmt.Println()
 }
-func printMatriceLatex(matrice [2][2]int) {
-	fmt.Println("\\begin{bmatrix}")
-	fmt.Println(matrice[0][0], "&", matrice[0][1], "\\\\")
-	fmt.Println(matrice[1][0], "&", matrice[1][1])
-	fmt.Println("\\end{bmatrix}")
+func printMatrixLatex(matrix [][]int, matrixType string) {
+	fmt.Printf("\\begin{%s}", matrixType)
+	fmt.Println()
+	for i := 0; i < len(matrix); i++ {
+		for j := 0; j < len(matrix[i]); j++ {
+			fmt.Print(matrix[i][j])
+			if j != len(matrix[i])-1 {
+				fmt.Print("&")
+			}
+		}
+		if i != len(matrix)-1 {
+			fmt.Print("\\\\")
+		}
+		fmt.Println()
+	}
+	fmt.Printf("\\end{%s}", matrixType)
+	fmt.Println()
 }
-func print4MatriceLatex(cubes [4][2][2]int) {
-	for count := 0; count < 3; count++ {
-		printMatriceLatex(cubes[count])
+func printNMatrix(cubes [][][]int) {
+	for _, row := range cubes {
+		printMatrix(row)
+	}
+}
+func printNMatrixLatexSingleRow(cubes [][][]int, matrixType string) {
+	for count := 0; count < len(cubes)-1; count++ {
+		printMatrixLatex(cubes[count], matrixType)
 		fmt.Println("\\quad")
 	}
-	printMatriceLatex(cubes[3])
+	printMatrixLatex(cubes[len(cubes)-1], matrixType)
 }
-
-func printMatriceLatexDistance(matrice [2][2]int) {
-	printMatriceLatex(matrice)
-	print4MatriceLatex(cube(matrice))
+func printMatrixDistanceSingleRow(matrix [][]int, matrixType string) {
+	printMatrixLatex(matrix, matrixType)
+	printNMatrixLatexSingleRow(cube(matrix), matrixType)
 }
 func main() {
 	var rootCmd = &cobra.Command{
@@ -62,11 +77,11 @@ func main() {
 }
 func runMatrice(cmd *cobra.Command, args []string) {
 	matrixJSON := args[0]
-	var matrix [2][2]int
+	var matrix [][]int
 	err := json.Unmarshal([]byte(matrixJSON), &matrix)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing matrix JSON: %v\n", err)
 		os.Exit(1)
 	}
-	printMatriceLatexDistance(matrix)
+	printMatrixDistanceSingleRow(matrix, "pmatrix")
 }
